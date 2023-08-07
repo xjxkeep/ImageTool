@@ -1,0 +1,5 @@
+numpy==1.25.2
+Pillow==10.0.0
+PyQt6==6.5.2
+python-docx==0.8.11
+
