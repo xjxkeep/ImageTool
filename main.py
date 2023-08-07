@@ -40,7 +40,7 @@ class MainWindow(QMainWindow):
         vlayout.addWidget(body)
         vlayout.addWidget(self.menu)
 
-        copyright_label = QLabel("Copyright © 2023 Jinxin Xiong. All Rights Reserved. Contact: 15150276667@163.com")
+        copyright_label = QLabel("Copyright © 2023 Jinxin Xiong. All Rights Reserved. Contact: 715020813@qq.com")
         copyright_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.statusBar().addPermanentWidget(copyright_label, stretch=2)
 
