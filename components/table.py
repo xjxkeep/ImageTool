@@ -136,11 +136,14 @@ class CustomTableWidget(QTableWidget):
             if source_widget is None:
                 self.setCellWidget(self.source_row, self.source_col, target_widget.copy())
                 self.removeCellWidget(target_row, target_col)
+                self.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
+                self.verticalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
                 return
             if target_widget is None:
                 self.setCellWidget(target_row, target_col, source_widget.copy())
                 self.removeCellWidget(self.source_row, self.source_col)
-
+                self.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
+                self.verticalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
                 return
             
             self.setCellWidget(self.source_row, self.source_col, target_widget.copy())
@@ -173,14 +176,17 @@ class CustomTableWidget(QTableWidget):
             widgets.append(widget)
         if col_first:
             col=self.columnCount()
+            if col==0:col=1
             row=math.ceil(len(widgets)/col)
         else:
             row=self.rowCount()
+            if row==0:row=1
             col=math.ceil(len(widgets)/row)
         self.setRowCount(row)
         self.setColumnCount(col)
         self.clearContents()
         widgets=sorted(widgets,key=lambda x:x.text)
+        self.img_cnt+=len(widgets)
         if col_first:
             for i,widget in enumerate(widgets):
                 self.setCellWidget(i//col,i%col,widget)

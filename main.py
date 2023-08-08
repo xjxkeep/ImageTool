@@ -40,7 +40,7 @@ class MainWindow(QMainWindow):
         vlayout.addWidget(body)
         vlayout.addWidget(self.menu)
 
-        copyright_label = QLabel("Copyright © 2023 Jinxin Xiong. All Rights Reserved. Contact: 15150276667@163.com")
+        copyright_label = QLabel("Copyright © 2023 Jinxin Xiong. All Rights Reserved. Contact: 715020813@qq.com")
         copyright_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.statusBar().addPermanentWidget(copyright_label, stretch=2)
 
@@ -145,12 +145,14 @@ class MainWindow(QMainWindow):
 
     def changeRow(self, v):
         if v == 0: return
-        self.menu.colSpin.setValue(math.ceil(self.img_table.img_cnt / v))
+        self.menu.colSpin.setValue(max(math.ceil(self.img_table.img_cnt / v),self.menu.colSpin.value()))
+        
         self.img_table.rearrange(self.menu.rowSpin.value(),self.menu.colSpin.value())
 
     def changeColumn(self, v):
         if v == 0: return
-        self.menu.rowSpin.setValue(math.ceil(self.img_table.img_cnt / v))
+        self.menu.rowSpin.setValue(max(math.ceil(self.img_table.img_cnt / v),self.menu.rowSpin.value()))
+        self.img_table.rearrange(self.menu.rowSpin.value(),self.menu.colSpin.value())
     
     def applyImageOperation(self):
         if len(self.img_table.selectedIndexes()) == 0: return
