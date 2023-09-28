@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>686</width>
-    <height>94</height>
+    <width>786</width>
+    <height>110</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -108,6 +108,48 @@
     </widget>
    </item>
    <item>
+    <widget class="QGroupBox" name="groupBox">
+     <property name="title">
+      <string>标签显示</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout">
+      <item>
+       <widget class="QRadioButton" name="disallOpt">
+        <property name="text">
+         <string>全部显示</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+        <attribute name="buttonGroup">
+         <string notr="true">labelGroup</string>
+        </attribute>
+       </widget>
+      </item>
+      <item>
+       <widget class="QRadioButton" name="firstRowOpt">
+        <property name="text">
+         <string>显示尾行</string>
+        </property>
+        <attribute name="buttonGroup">
+         <string notr="true">labelGroup</string>
+        </attribute>
+       </widget>
+      </item>
+      <item>
+       <widget class="QRadioButton" name="dispNoneOpt">
+        <property name="text">
+         <string>不显示</string>
+        </property>
+        <attribute name="buttonGroup">
+         <string notr="true">labelGroup</string>
+        </attribute>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
     <widget class="QGroupBox" name="groupBox_5">
      <property name="maximumSize">
       <size>
@@ -129,9 +171,6 @@
           <property name="checked">
            <bool>true</bool>
           </property>
-          <attribute name="buttonGroup">
-           <string notr="true">buttonGroup</string>
-          </attribute>
          </widget>
         </item>
         <item row="0" column="1">
@@ -142,9 +181,6 @@
           <property name="checked">
            <bool>false</bool>
           </property>
-          <attribute name="buttonGroup">
-           <string notr="true">buttonGroup</string>
-          </attribute>
          </widget>
         </item>
        </layout>
@@ -154,13 +190,6 @@
    </item>
    <item>
     <layout class="QGridLayout" name="gridLayout_6">
-     <item row="2" column="0">
-      <widget class="QPushButton" name="imgFolderBut">
-       <property name="text">
-        <string>打开文件夹</string>
-       </property>
-      </widget>
-     </item>
      <item row="2" column="1">
       <widget class="QPushButton" name="addImagesBut">
        <property name="text">
@@ -168,10 +197,20 @@
        </property>
       </widget>
      </item>
-     <item row="2" column="2">
-      <widget class="QPushButton" name="exportImagesBut">
+     <item row="2" column="0">
+      <widget class="QPushButton" name="imgFolderBut">
        <property name="text">
-        <string>导出图片</string>
+        <string>打开文件夹</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="label_7">
+       <property name="text">
+        <string>行数：</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
        </property>
       </widget>
      </item>
@@ -185,13 +224,10 @@
      <item row="1" column="1">
       <widget class="QSpinBox" name="rowSpin"/>
      </item>
-     <item row="1" column="0">
-      <widget class="QLabel" name="label_7">
+     <item row="2" column="2">
+      <widget class="QPushButton" name="exportImagesBut">
        <property name="text">
-        <string>行数：</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        <string>导出图片</string>
        </property>
       </widget>
      </item>
@@ -208,6 +244,20 @@
      <item row="1" column="3">
       <widget class="QSpinBox" name="colSpin"/>
      </item>
+     <item row="3" column="0">
+      <widget class="QPushButton" name="clearBut">
+       <property name="text">
+        <string>清空图片</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="1">
+      <widget class="QPushButton" name="delImgBut">
+       <property name="text">
+        <string>删除选中图片</string>
+       </property>
+      </widget>
+     </item>
     </layout>
    </item>
   </layout>
@@ -215,7 +265,7 @@
  <resources/>
  <connections/>
  <buttongroups>
-  <buttongroup name="buttonGroup"/>
   <buttongroup name="sizeGroup"/>
+  <buttongroup name="labelGroup"/>
  </buttongroups>
 </ui>

@@ -31,13 +31,14 @@ class MainWindow(QMainWindow):
         self.preview_layout.addWidget(self.draw_dock)
         self.preview_layout.addWidget(self.pannel)
 
-        body=QWidget()
-        layout=QHBoxLayout(body)
-        layout.addWidget(self.img_table)
-        layout.addWidget(drawModule)
 
+        splitter = QSplitter(Qt.Orientation.Horizontal)
+        
+        splitter.addWidget(self.img_table)
+        splitter.addWidget(drawModule)
+        splitter.setStretchFactor(1, 1)
         vlayout=QVBoxLayout(self.container)
-        vlayout.addWidget(body)
+        vlayout.addWidget(splitter)
         vlayout.addWidget(self.menu)
 
         copyright_label = QLabel("Copyright © 2023 Jinxin Xiong. All Rights Reserved. Contact: 715020813@qq.com")
@@ -56,6 +57,16 @@ class MainWindow(QMainWindow):
         self.menu.widSpin.editingFinished.connect(self.changeImageSize)
         self.menu.exportImagesBut.clicked.connect(self.saveImages)
         self.menu.addImagesBut.clicked.connect(self.addImages)
+        self.menu.clearBut.clicked.connect(self.clearSelected)
+        self.menu.delImgBut.clicked.connect(self.clearSelected)
+
+    def clearSelected(self):
+        for i in self.img_table.selectedIndexes():
+            self.img_table.removeCellWidget(i.row(),i.column())
+
+    def clearTable(self):
+        self.img_table.emptyClear()
+        self.draw_board.clear()
 
     def addImages(self):
         fileNames, _ = QFileDialog.getOpenFileNames(self, "Open Image", "", "Image Files (*.png *.jpg *.bmp)")
@@ -128,7 +139,7 @@ class MainWindow(QMainWindow):
         word_file, _ = QFileDialog.getSaveFileName(None, "保存word文件", "", "Word Files (*.docx)")
         if self.img_table.img_cnt==0:return 
         if not word_file: return        
-        self.img_table.exportWord(word_file)
+        self.img_table.exportWord(word_file,["all","bottom","none"][-2-self.menu.labelGroup.checkedId()])
         QMessageBox.information(self, '提示', f'导出Word文件成功!\n文件路径:{word_file}')
 
     def openImageFolder(self):

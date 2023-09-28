@@ -256,9 +256,7 @@ class CustomTableWidget(QTableWidget):
         # self.rearrange(5,sort,row_first)
         self.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
         self.verticalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
-    
-    
-    
+        
     def exportImage(self,folder):
         for i in range(self.rowCount()):
             for j in range(self.columnCount()):
