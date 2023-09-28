@@ -12,6 +12,7 @@ class Menu(QWidget,Ui_Form):
         self.retranslateUi(self)
         self.heiSpin.setDisabled(True)
         self.widSpin.setDisabled(True)
+        self.setMaximumHeight(150)
         self.imgFolderBut.clicked.connect(parent.openImageFolder)
         self.exportWordBut.clicked.connect(parent.exportWord)
 
@@ -22,7 +23,7 @@ class Menu(QWidget,Ui_Form):
         self.colFirst.clicked.connect(parent.setColFirst)
         self.sizeGroup.buttonClicked.connect(self.size_options)
 
-        
+
     def size_options(self):
         cid = self.sizeGroup.checkedId()
         # print(cid)
