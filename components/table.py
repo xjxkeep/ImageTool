@@ -8,7 +8,7 @@ from PyQt6.QtCore import Qt,QRect
 import os
 from gen_word_table import add_pic_to_cell, add_text_to_cell
 from docx import Document
-
+from natsort import natsorted
 
 class TableItem(QWidget):
     def __init__(self,img_path=None,text=None,size=120, parent=None) -> None:
@@ -196,6 +196,12 @@ class CustomTableWidget(QTableWidget):
         self.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
         self.verticalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
 
+    def emptyClear(self):
+        self.clear()
+        self.setRowCount(0)
+        self.setColumnCount(0)
+        self.img_cnt=0
+
     def rearrange(self,row=None,col=None,col_first:bool=False):
         col_first=self.col_first
         widgets=[]
@@ -217,7 +223,7 @@ class CustomTableWidget(QTableWidget):
         self.setColumnCount(col)
         self.clearContents()
         
-        widgets=list(sorted(widgets,key=lambda x:x.text))
+        widgets=list(natsorted(widgets,key=lambda x:x.text))
         hheader = self.horizontalHeader()
         vheader = self.verticalHeader()
         # print(widgets)
@@ -250,7 +256,9 @@ class CustomTableWidget(QTableWidget):
         # self.rearrange(5,sort,row_first)
         self.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
         self.verticalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
-        
+    
+    
+    
     def exportImage(self,folder):
         for i in range(self.rowCount()):
             for j in range(self.columnCount()):
@@ -266,7 +274,7 @@ class CustomTableWidget(QTableWidget):
                     name=f"{name}.jpg"
                 label.pixmap().save(os.path.join(folder,name))
 
-    def exportWord(self,filepath):
+    def exportWord(self,filepath,label_setting=None):
         document = Document()
         # document.sections[0].top_margin = Cm(0)
         # document.sections[0].bottom_margin = Cm(0)
@@ -279,27 +287,43 @@ class CustomTableWidget(QTableWidget):
         g_col = self.columnCount()
 
         width = (21.59-3.18-3.18) / g_col
-        table = document.add_table(rows=g_row, cols=g_col) 
-        row_index = 0
+        if label_setting == 'bottom':
+            total_row=g_row+1
+        elif label_setting == 'all' or label_setting is None:
+            total_row=g_row*2
+        else:
+            total_row=g_row
 
+
+        table = document.add_table(rows=total_row, cols=g_col) 
+        row_index = 0
+        r=0
         hheader = self.horizontalHeader()
         vheader = self.verticalHeader()
-        for r in range(g_row):
-            # todo fix bug 
-            add_row_flag = False
+
+        while row_index<total_row:
             for c in range(g_col):
                 widget = self.cellWidget(vheader.logicalIndex(r), hheader.logicalIndex(c))
                 if widget is None: continue
                 label = widget.label
                 pixmap = label.pixmap()
                 text = widget.text
-                if text=="":text =f"{r}-{c}"
                 img_path = os.path.join(os.path.dirname(filepath),"images",text+".jpg")
                 pixmap.save(img_path)
                 
                 add_pic_to_cell(table, row_index, c, img_path, width)
-                add_text_to_cell(table, row_index, c, text, width)
-            row_index += 1
+                if label_setting == 'bottom' and row_index == total_row-2: 
+                    add_text_to_cell(table, row_index+1, c, text, width)
+                elif label_setting == 'all' or label_setting is None:
+                    row_index+=1
+                    add_text_to_cell(table, row_index+1, c, text, width)
+            r+=1
+            if label_setting == 'bottom' and row_index == total_row-2:
+                row_index += 2
+            elif label_setting == 'all' or label_setting is None:
+                row_index += 2
+            else:
+                row_index += 1
 
         table.autofit = True
         
