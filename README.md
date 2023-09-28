@@ -11,7 +11,7 @@ PyQt6==6.5.2
 python-docx==0.8.11
 ## 使用
 * 下载可执行文件
-  [ImageTool](https://github.com/xjxkeep/ImageTool/releases/tag/V1.0.0)
+  [ImageTool](https://github.com/xjxkeep/ImageTool/releases/tag/V1.0.1)
 * 下载源码运行
   ```
   git clone git@github.com:xjxkeep/ImageTool.git
