@@ -70,6 +70,7 @@ class TableItem(QWidget):
             self.setPixmap(self.pixmap.scaled(int(w),int(h)))
     
 class CustomTableWidget(QTableWidget):
+    progress_signal=QtCore.pyqtSignal(int)
     def __init__(self):
         super().__init__()
         self.sort_mode=True
@@ -243,6 +244,10 @@ class CustomTableWidget(QTableWidget):
         self.verticalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
     
     def loadFolder(self,folder,col=5):
+        total_process=len(os.listdir(folder))
+        dp=100/total_process
+        progress=0
+
         self.clearContents()
         self.img_cnt=len(os.listdir(folder))
         row=math.ceil(self.img_cnt/col)
@@ -250,14 +255,20 @@ class CustomTableWidget(QTableWidget):
         self.setColumnCount(col)
 
         for i,file in enumerate(os.listdir(folder)):
+            progress+=dp
+            self.progress_signal.emit(int(progress))
             if not file.endswith(('.jpg',".png",".bmp")): continue
             file=os.path.splitext(file)[0]
             self._add_widget(i//col,i%col,os.path.join(folder,file),file)
         # self.rearrange(5,sort,row_first)
         self.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
         self.verticalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
-        
+        self.progress_signal.emit(100)
+
     def exportImage(self,folder):
+        total_process=self.rowCount()*self.columnCount()
+        dp=100/total_process
+        progress=0
         for i in range(self.rowCount()):
             for j in range(self.columnCount()):
                 widget=self.cellWidget(i,j)
@@ -271,14 +282,12 @@ class CustomTableWidget(QTableWidget):
                 else:
                     name=f"{name}.jpg"
                 label.pixmap().save(os.path.join(folder,name))
+                progress+=dp
+                self.progress_signal.emit(int(progress))
+        self.progress_signal.emit(100)
 
     def exportWord(self,filepath,label_setting=None):
         document = Document()
-        # document.sections[0].top_margin = Cm(0)
-        # document.sections[0].bottom_margin = Cm(0)
-        # document.sections[0].left_margin = Cm(0)
-        # document.sections[0].right_margin = Cm(0)
-        
         if not os.path.exists(os.path.join(os.path.dirname(filepath),"images")):
             os.makedirs(os.path.join(os.path.dirname(filepath),"images"))
         g_row = self.rowCount()
@@ -298,7 +307,8 @@ class CustomTableWidget(QTableWidget):
         r=0
         hheader = self.horizontalHeader()
         vheader = self.verticalHeader()
-
+        dp=100/total_row
+        progress=0
         while row_index<total_row:
             for c in range(g_col):
                 widget = self.cellWidget(vheader.logicalIndex(r), hheader.logicalIndex(c))
@@ -313,16 +323,19 @@ class CustomTableWidget(QTableWidget):
                 if label_setting == 'bottom' and row_index == total_row-2: 
                     add_text_to_cell(table, row_index+1, c, text, width)
                 elif label_setting == 'all' or label_setting is None:
-                    row_index+=1
                     add_text_to_cell(table, row_index+1, c, text, width)
             r+=1
             if label_setting == 'bottom' and row_index == total_row-2:
                 row_index += 2
+                progress+=dp*2
             elif label_setting == 'all' or label_setting is None:
                 row_index += 2
+                progress+=dp*2
             else:
                 row_index += 1
-
+                progress+=dp
+            self.progress_signal.emit(int(progress))
         table.autofit = True
         
         document.save(filepath)
+        self.progress_signal.emit(100)

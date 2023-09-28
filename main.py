@@ -10,7 +10,7 @@ from components.pannel import Pannel
 from components.table import CustomTableWidget
 import json
 from PyQt6 import QtGui
-
+import threading
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -50,15 +50,22 @@ class MainWindow(QMainWindow):
             self.setWindowTitle(setting.get('title',"Image Tool V1.0"))
             self.resize(setting.get('w', 800), setting.get('h', 600))
         
-        
+        self.informationText=""
         self.setWindowIcon(QtGui.QIcon(":/1.jpeg"))
         self.img_table.clicked.connect(self.selectTableItem)
         self.menu.heiSpin.editingFinished.connect(self.changeImageSize)
         self.menu.widSpin.editingFinished.connect(self.changeImageSize)
         self.menu.exportImagesBut.clicked.connect(self.saveImages)
         self.menu.addImagesBut.clicked.connect(self.addImages)
-        self.menu.clearBut.clicked.connect(self.clearSelected)
+        self.menu.clearBut.clicked.connect(self.clearTable)
         self.menu.delImgBut.clicked.connect(self.clearSelected)
+        self.img_table.progress_signal.connect(self.updateProgress)
+
+    def updateProgress(self, v):
+        self.menu.progressBar.setValue(v)
+        if v==100 and self.informationText!="":
+            QMessageBox.information(self, '提示',self.informationText)
+            self.informationText=""
 
     def clearSelected(self):
         for i in self.img_table.selectedIndexes():
@@ -131,16 +138,22 @@ class MainWindow(QMainWindow):
     def exportAllImages(self):
         folder_path = QFileDialog.getExistingDirectory(self, '选择图像保存的文件夹', '/')
         if not folder_path: return
-        self.img_table.exportImage(folder_path)
-        QMessageBox.information(self, '提示', f'保存成功！\n路径:{folder_path}')
+        self.informationText=f'保存成功！\n路径:{folder_path}'
+        threading.Thread(target=self.img_table.exportImage,args=(folder_path,)).start()
+        # self.img_table.exportImage(folder_path)
+        # QMessageBox.information(self, '提示', f'保存成功！\n路径:{folder_path}')
     
     def exportWord(self):
         # print("save pdf")
         word_file, _ = QFileDialog.getSaveFileName(None, "保存word文件", "", "Word Files (*.docx)")
         if self.img_table.img_cnt==0:return 
         if not word_file: return        
-        self.img_table.exportWord(word_file,["all","bottom","none"][-2-self.menu.labelGroup.checkedId()])
-        QMessageBox.information(self, '提示', f'导出Word文件成功!\n文件路径:{word_file}')
+        
+        # 使用多线程导出
+        # self.img_table.exportWord(word_file,["all","bottom","none"][-2-self.menu.labelGroup.checkedId()])
+        self.informationText=f'导出Word文件成功!\n文件路径:{word_file}'
+        threading.Thread(target=self.img_table.exportWord,args=(word_file,["all","bottom","none"][-2-self.menu.labelGroup.checkedId()])).start()
+        # QMessageBox.information(self, '提示', f'导出Word文件成功!\n文件路径:{word_file}')
 
     def openImageFolder(self):
         folder_path = QFileDialog.getExistingDirectory(self, '打开图像文件夹', r'/')
@@ -148,11 +161,14 @@ class MainWindow(QMainWindow):
         self.img_table.loadFolder(folder_path)
         self.menu.colSpin.setValue(int(math.sqrt(self.img_table.img_cnt)))
 
+
     def saveImages(self):
         folder_path = QFileDialog.getExistingDirectory(self, '选择保存的文件夹', '/')
         if not folder_path: return
-        self.img_table.exportImage(folder_path)
-        QMessageBox.information(self, '提示', f'保存成功！\n路径:{folder_path}')
+        # self.img_table.exportImage(folder_path)
+        # QMessageBox.information(self, '提示', f'保存成功！\n路径:{folder_path}')
+        self.informationText=f'保存成功！\n路径:{folder_path}'
+        threading.Thread(target=self.img_table.exportImage,args=(folder_path,)).start()
 
     def changeRow(self, v):
         if v == 0: return

@@ -12,7 +12,7 @@ from PyQt6 import QtCore, QtGui, QtWidgets
 class Ui_Form(object):
     def setupUi(self, Form):
         Form.setObjectName("Form")
-        Form.resize(786, 110)
+        Form.resize(786, 124)
         self.horizontalLayout = QtWidgets.QHBoxLayout(Form)
         self.horizontalLayout.setObjectName("horizontalLayout")
         self.groupBox_6 = QtWidgets.QGroupBox(parent=Form)
@@ -129,6 +129,10 @@ class Ui_Form(object):
         self.delImgBut = QtWidgets.QPushButton(parent=Form)
         self.delImgBut.setObjectName("delImgBut")
         self.gridLayout_6.addWidget(self.delImgBut, 3, 1, 1, 1)
+        self.progressBar = QtWidgets.QProgressBar(parent=Form)
+        self.progressBar.setProperty("value", 0)
+        self.progressBar.setObjectName("progressBar")
+        self.gridLayout_6.addWidget(self.progressBar, 4, 0, 1, 4)
         self.horizontalLayout.addLayout(self.gridLayout_6)
 
         self.retranslateUi(Form)
@@ -159,3 +163,4 @@ class Ui_Form(object):
         self.label_10.setText(_translate("Form", "列数："))
         self.clearBut.setText(_translate("Form", "清空图片"))
         self.delImgBut.setText(_translate("Form", "删除选中图片"))
+        self.progressBar.setFormat(_translate("Form", "%p%"))

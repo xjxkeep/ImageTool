@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>786</width>
-    <height>110</height>
+    <height>124</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -255,6 +255,16 @@
       <widget class="QPushButton" name="delImgBut">
        <property name="text">
         <string>删除选中图片</string>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="0" colspan="4">
+      <widget class="QProgressBar" name="progressBar">
+       <property name="value">
+        <number>0</number>
+       </property>
+       <property name="format">
+        <string>%p%</string>
        </property>
       </widget>
      </item>
