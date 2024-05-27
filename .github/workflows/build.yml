@@ -5,9 +5,9 @@ on:
     branches:
       - main
   workflow_dispatch:  # 添加手动触发事件
+
 jobs:
   build:
-
     runs-on: ${{ matrix.os }}
 
     strategy:
@@ -21,7 +21,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
-        python-version: 3.10
+        python-version: 3.8
 
     - name: Install dependencies
       run: |
@@ -29,16 +29,16 @@ jobs:
 
     - name: Build
       run: |
-         if [ ${{ matrix.os }} == 'windows-latest' ]; then
+        if [ "${{ matrix.os }}" == 'windows-latest' ]; then
           # Windows compile command
           pyinstaller --noconsole --name ImageToolForWindows --icon icon.ico main.py
-         elif [ ${{ matrix.os }} == 'ubuntu-latest' ]; then
+        elif [ "${{ matrix.os }}" == 'ubuntu-latest' ]; then
           # Linux compile command
           pyinstaller --name ImageToolForLinux --onefile main.py
-         elif [ ${{ matrix.os }} == 'macos-latest' ]; then
+        elif [ "${{ matrix.os }}" == 'macos-latest' ]; then
           # macOS compile command
           pyinstaller --name ImageToolForMacOS --onefile main.py
-         fi
+        fi
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v2
