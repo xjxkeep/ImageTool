@@ -1,0 +1,47 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:  # 添加手动触发事件
+jobs:
+  build:
+
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.10
+
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
+
+    - name: Build
+      run: |
+         if [ ${{ matrix.os }} == 'windows-latest' ]; then
+          # Windows compile command
+          pyinstaller --noconsole --name ImageToolForWindows --icon icon.ico main.py
+         elif [ ${{ matrix.os }} == 'ubuntu-latest' ]; then
+          # Linux compile command
+          pyinstaller --name ImageToolForLinux --onefile main.py
+         elif [ ${{ matrix.os }} == 'macos-latest' ]; then
+          # macOS compile command
+          pyinstaller --name ImageToolForMacOS --onefile main.py
+         fi
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: binaries
+        path: dist/
