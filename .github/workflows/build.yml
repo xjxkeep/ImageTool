@@ -29,13 +29,13 @@ jobs:
 
     - name: Build
       run: |
-          if [ "${{ matrix.os }}" == 'windows-latest' ]; then
+          if [ "${{ matrix.os }}" = 'windows-latest' ]; then
             # Windows compile command
             pyinstaller --noconsole --name ImageToolForWindows --icon icon.ico main.py
-          elif [ "${{ matrix.os }}" == 'ubuntu-latest' ]; then
+          elif [ "${{ matrix.os }}" = 'ubuntu-latest' ]; then
             # Linux compile command
             pyinstaller --name ImageToolForLinux --onefile main.py
-          elif [ "${{ matrix.os }}" == 'macos-latest' ]; then
+          elif [ "${{ matrix.os }}" = 'macos-latest' ]; then
             # macOS compile command
             pyinstaller --name ImageToolForMacOS --onefile main.py
           fi
