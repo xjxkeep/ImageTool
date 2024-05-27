@@ -12,7 +12,7 @@ jobs:
 
     strategy:
       matrix:
-        os: [windows-latest, ubuntu-latest, macos-latest]
+        os: [windows-latest, ubuntu-latest, macos-latest,macos-11-arm64]
 
     steps:
     - name: Checkout code
@@ -27,26 +27,12 @@ jobs:
       run: |
         pip install -r requirements.txt
 
-    - name: Build for Windows
-      if: matrix.os == 'windows-latest'
+    - name: Build
       run: |
-        pyinstaller --onefile --noconsole --name ImageTool_windows --icon logo.jpeg main.py
-
-    - name: Build for Ubuntu
-      if: matrix.os == 'ubuntu-latest'
-      run: |
-        pyinstaller --onefile --noconsole --name ImageTool_ubuntu --icon logo.jpeg main.py
-
-    - name: Build for MacOS
-      if: matrix.os == 'macos-latest'
-      run: |
-        pyinstaller --onefile --noconsole --name ImageTool_macos --icon logo.jpeg main.py
-
+          pyinstaller --onefile --noconsole --name ImageTool_${{ matrix.os }} --icon logo.jpeg main.py
+ 
     - name: Upload artifacts
       uses: actions/upload-artifact@v2
       with:
         name: binaries
-        path: |
-          dist/ImageTool_windows/
-          dist/ImageTool_ubuntu/
-          dist/ImageTool_macos/
+        path: dist/
