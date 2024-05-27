@@ -31,13 +31,13 @@ jobs:
       run: |
           if [ "${{ matrix.os }}" = 'windows-latest' ]; then
             # Windows compile command
-            pyinstaller --noconsole --name ImageToolForWindows --icon icon.ico main.py
+            pyinstaller --noconsole --name ImageToolForWindows --icon logo.jpeg main.py
           elif [ "${{ matrix.os }}" = 'ubuntu-latest' ]; then
             # Linux compile command
-            pyinstaller --name ImageToolForLinux --onefile main.py
+            pyinstaller --name ImageToolForLinux --icon logo.jpeg --onefile main.py
           elif [ "${{ matrix.os }}" = 'macos-latest' ]; then
             # macOS compile command
-            pyinstaller --name ImageToolForMacOS --onefile main.py
+            pyinstaller --name ImageToolForMacOS --icon logo.jpeg --onefile main.py
           fi
 
     - name: Upload artifacts
