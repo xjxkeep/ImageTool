@@ -27,13 +27,26 @@ jobs:
       run: |
         pip install -r requirements.txt
 
-    - name: Build
+    - name: Build for Windows
+      if: matrix.os == 'windows-latest'
       run: |
-          pyinstaller --noconsole --name ImageTool_${{ matrix.os }} --icon logo.jpeg main.py
- 
+        pyinstaller --noconsole --name ImageTool_windows --icon logo.jpeg main.py
+
+    - name: Build for Ubuntu
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        pyinstaller --noconsole --name ImageTool_ubuntu --icon logo.jpeg main.py
+
+    - name: Build for MacOS
+      if: matrix.os == 'macos-latest'
+      run: |
+        pyinstaller --noconsole --name ImageTool_macos --icon logo.jpeg main.py
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v2
       with:
         name: binaries
-        path: dist/
+        path: |
+          dist/ImageTool_windows/
+          dist/ImageTool_ubuntu/
+          dist/ImageTool_macos/
