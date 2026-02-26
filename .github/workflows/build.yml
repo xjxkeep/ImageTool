@@ -17,17 +17,17 @@ jobs:
       matrix:
         include:
           - os: windows-latest
-            artifact_name: ImageTool_windows.exe
             build_name: ImageTool
-            asset_name: ImageTool_windows.exe
+            platform: windows
+            ext: .exe
           - os: ubuntu-latest
-            artifact_name: ImageTool_linux
             build_name: ImageTool
-            asset_name: ImageTool_linux
+            platform: linux
+            ext: ''
           - os: macos-latest
-            artifact_name: ImageTool_macos
             build_name: ImageTool
-            asset_name: ImageTool_macos
+            platform: macos
+            ext: ''
 
     steps:
     - name: Checkout code
@@ -37,6 +37,20 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: '3.11'
+
+    # 从 tag 或 commit SHA 生成版本号
+    - name: Determine version
+      id: version
+      shell: bash
+      run: |
+        if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+          echo "version=${GITHUB_REF#refs/tags/v}" >> "$GITHUB_OUTPUT"
+          echo "tag=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
+        else
+          SHORT_SHA=$(git rev-parse --short HEAD)
+          echo "version=dev-${SHORT_SHA}" >> "$GITHUB_OUTPUT"
+          echo "tag=" >> "$GITHUB_OUTPUT"
+        fi
 
     # Linux 需要安装 Qt 运行所需的系统依赖
     - name: Install Linux system dependencies
@@ -104,24 +118,25 @@ jobs:
       run: |
         pyinstaller --onefile --noconsole --name ${{ matrix.build_name }} --icon logo.icns main.py
 
-    # 重命名产物为平台特定的名称
-    - name: Rename artifact (Windows)
-      if: matrix.os == 'windows-latest'
+    # 重命名产物，带上版本号和平台标识
+    - name: Rename artifact
+      shell: bash
       run: |
-        mv dist/${{ matrix.build_name }}.exe dist/${{ matrix.artifact_name }}
-
-    - name: Rename artifact (Linux/macOS)
-      if: matrix.os != 'windows-latest'
-      run: |
-        mv dist/${{ matrix.build_name }} dist/${{ matrix.artifact_name }}
+        ARTIFACT="${{ matrix.build_name }}_${{ matrix.platform }}${{ matrix.ext }}"
+        if [ "${{ matrix.os }}" = "windows-latest" ]; then
+          mv "dist/${{ matrix.build_name }}.exe" "dist/${ARTIFACT}"
+        else
+          mv "dist/${{ matrix.build_name }}" "dist/${ARTIFACT}"
+        fi
+        echo "artifact_name=${ARTIFACT}" >> "$GITHUB_ENV"
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ matrix.artifact_name }}
-        path: dist/${{ matrix.artifact_name }}
+        name: ${{ env.artifact_name }}
+        path: dist/${{ env.artifact_name }}
 
-  # 当推送 tag 时自动创建 Release
+  # 当推送 tag 时自动创建 Release 并上传产物
   release:
     needs: build
     runs-on: ubuntu-latest
@@ -130,16 +145,57 @@ jobs:
       contents: write
 
     steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
     - name: Download all artifacts
       uses: actions/download-artifact@v4
       with:
         path: artifacts
 
+    # 整理产物并生成 SHA256 校验和
+    - name: Prepare release assets
+      run: |
+        mkdir -p release
+        find artifacts -type f -exec cp {} release/ \;
+        cd release
+        sha256sum * > SHA256SUMS.txt
+        echo "--- SHA256 校验和 ---"
+        cat SHA256SUMS.txt
+
+    # 判断是否为预发布版本（如 v1.0.0-rc1, v1.0.0-beta.1）
+    - name: Check pre-release
+      id: prerelease
+      run: |
+        TAG="${GITHUB_REF#refs/tags/}"
+        if [[ "$TAG" =~ -(alpha|beta|rc|dev) ]]; then
+          echo "is_prerelease=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "is_prerelease=false" >> "$GITHUB_OUTPUT"
+        fi
+        echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+
     - name: Create Release
       uses: softprops/action-gh-release@v2
       with:
+        name: ImageTool ${{ steps.prerelease.outputs.tag }}
         generate_release_notes: true
-        files: |
-          artifacts/ImageTool_windows.exe/ImageTool_windows.exe
-          artifacts/ImageTool_linux/ImageTool_linux
-          artifacts/ImageTool_macos/ImageTool_macos
+        prerelease: ${{ steps.prerelease.outputs.is_prerelease == 'true' }}
+        body_path: ''
+        append_body: true
+        body: |
+          ## 下载
+
+          | 平台 | 文件 |
+          |------|------|
+          | Windows | `ImageTool_windows.exe` |
+          | Linux | `ImageTool_linux` |
+          | macOS | `ImageTool_macos` |
+
+          > Linux/macOS 下载后需要添加执行权限: `chmod +x ImageTool_*`
+
+          校验和文件 `SHA256SUMS.txt` 可用于验证下载完整性:
+          ```
+          sha256sum -c SHA256SUMS.txt
+          ```
+        files: release/*
