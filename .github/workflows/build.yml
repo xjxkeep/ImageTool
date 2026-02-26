@@ -4,49 +4,142 @@ on:
   push:
     branches:
       - main
-  workflow_dispatch:  # 添加手动触发事件
+    tags:
+      - 'v*'
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ${{ matrix.os }}
 
     strategy:
+      fail-fast: false
       matrix:
-        os: [windows-latest, ubuntu-latest, macos-latest]
+        include:
+          - os: windows-latest
+            artifact_name: ImageTool_windows.exe
+            build_name: ImageTool
+            asset_name: ImageTool_windows.exe
+          - os: ubuntu-latest
+            artifact_name: ImageTool_linux
+            build_name: ImageTool
+            asset_name: ImageTool_linux
+          - os: macos-latest
+            artifact_name: ImageTool_macos
+            build_name: ImageTool
+            asset_name: ImageTool_macos
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
 
     - name: Set up Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v5
       with:
-        python-version: 3.11
+        python-version: '3.11'
 
-    - name: Install dependencies
+    # Linux 需要安装 Qt 运行所需的系统依赖
+    - name: Install Linux system dependencies
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          libgl1 \
+          libegl1 \
+          libxkbcommon0 \
+          libdbus-1-3 \
+          libxcb-cursor0 \
+          libxcb-icccm4 \
+          libxcb-keysyms1 \
+          libxcb-shape0
+
+    # 安装 Python 依赖，跳过平台特定的包
+    - name: Install dependencies (Windows)
+      if: matrix.os == 'windows-latest'
       run: |
         pip install -r requirements.txt
+
+    - name: Install dependencies (Linux/macOS)
+      if: matrix.os != 'windows-latest'
+      run: |
+        pip install $(grep -ivE 'pywin32-ctypes|pefile' requirements.txt | tr '\n' ' ')
+
+    # 将 logo.jpeg 转换为各平台所需的图标格式
+    - name: Convert icon (Windows)
+      if: matrix.os == 'windows-latest'
+      shell: python
+      run: |
+        from PIL import Image
+        img = Image.open("logo.jpeg")
+        img.save("logo.ico", format="ICO", sizes=[(256, 256), (128, 128), (64, 64), (48, 48), (32, 32), (16, 16)])
+
+    - name: Convert icon (macOS)
+      if: matrix.os == 'macos-latest'
+      run: |
+        mkdir -p logo.iconset
+        sips -z 1024 1024 logo.jpeg --out logo.iconset/icon_512x512@2x.png
+        sips -z 512 512 logo.jpeg --out logo.iconset/icon_512x512.png
+        sips -z 512 512 logo.jpeg --out logo.iconset/icon_256x256@2x.png
+        sips -z 256 256 logo.jpeg --out logo.iconset/icon_256x256.png
+        sips -z 256 256 logo.jpeg --out logo.iconset/icon_128x128@2x.png
+        sips -z 128 128 logo.jpeg --out logo.iconset/icon_128x128.png
+        sips -z 64 64 logo.jpeg --out logo.iconset/icon_32x32@2x.png
+        sips -z 32 32 logo.jpeg --out logo.iconset/icon_32x32.png
+        sips -z 32 32 logo.jpeg --out logo.iconset/icon_16x16@2x.png
+        sips -z 16 16 logo.jpeg --out logo.iconset/icon_16x16.png
+        iconutil -c icns logo.iconset
 
     - name: Build for Windows
       if: matrix.os == 'windows-latest'
       run: |
-        pyinstaller --onefile --noconsole --name ImageTool_windows --icon logo.jpeg main.py
+        pyinstaller --onefile --noconsole --name ${{ matrix.build_name }} --icon logo.ico main.py
 
-    - name: Build for Ubuntu
+    - name: Build for Linux
       if: matrix.os == 'ubuntu-latest'
       run: |
-        pyinstaller --onefile --name ImageTool_ubuntu --icon logo.jpeg main.py
+        pyinstaller --onefile --name ${{ matrix.build_name }} main.py
 
-    - name: Build for MacOS
+    - name: Build for macOS
       if: matrix.os == 'macos-latest'
       run: |
-        pyinstaller --noconsole --name ImageTool_macos --icon logo.jpeg main.py
+        pyinstaller --onefile --noconsole --name ${{ matrix.build_name }} --icon logo.icns main.py
 
-    - name: Upload artifacts
-      uses: actions/upload-artifact@v2
+    # 重命名产物为平台特定的名称
+    - name: Rename artifact (Windows)
+      if: matrix.os == 'windows-latest'
+      run: |
+        mv dist/${{ matrix.build_name }}.exe dist/${{ matrix.artifact_name }}
+
+    - name: Rename artifact (Linux/macOS)
+      if: matrix.os != 'windows-latest'
+      run: |
+        mv dist/${{ matrix.build_name }} dist/${{ matrix.artifact_name }}
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
       with:
-        name: binaries
-        path: |
-          dist/ImageTool_windows/
-          dist/ImageTool_ubuntu/
-          dist/ImageTool_macos/
+        name: ${{ matrix.artifact_name }}
+        path: dist/${{ matrix.artifact_name }}
+
+  # 当推送 tag 时自动创建 Release
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      contents: write
+
+    steps:
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: artifacts
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v2
+      with:
+        generate_release_notes: true
+        files: |
+          artifacts/ImageTool_windows.exe/ImageTool_windows.exe
+          artifacts/ImageTool_linux/ImageTool_linux
+          artifacts/ImageTool_macos/ImageTool_macos

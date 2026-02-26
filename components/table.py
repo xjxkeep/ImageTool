@@ -26,7 +26,8 @@ class TableItem(QWidget):
         else:
             self.pixmap=QPixmap(img_path)
             self.label.setPixmap(self.pixmap)
-            self.label.setFixedSize(size,int(size*(self.pixmap.height()/self.pixmap.width())))
+            if self.pixmap.width() > 0:
+                self.label.setFixedSize(size,int(size*(self.pixmap.height()/self.pixmap.width())))
         self.layout().addWidget(self.label)
         self.text_label = QLineEdit(text)
         self.text_label.setStyleSheet("border: none;background-color: transparent;")
@@ -55,7 +56,8 @@ class TableItem(QWidget):
         self.pixmap=pixmap
         self.label.setPixmap(self.pixmap)
 
-        self.label.setFixedSize(self.isize,int(self.isize*(self.pixmap.height()/self.pixmap.width())))
+        if self.pixmap.width() > 0:
+            self.label.setFixedSize(self.isize,int(self.isize*(self.pixmap.height()/self.pixmap.width())))
         self.label.setScaledContents(True)
     
     def pixmapResize(self,w=None,h=None):
